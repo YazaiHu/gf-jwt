@@ -3,13 +3,14 @@ package jwt
 import (
 	"crypto/rsa"
 	"errors"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gogf/gf/frame/g"
-	"github.com/gogf/gf/net/ghttp"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/gf/net/ghttp"
 )
 
 // MapClaims type that uses the map[string]interface{} for JSON decoding
@@ -447,6 +448,7 @@ func (mw *GfJWTMiddleware) LoginHandler(r *ghttp.Request) {
 		r.Cookie.SetCookie(mw.CookieName, tokenString, mw.CookieDomain, "/", time.Duration(maxage)*time.Millisecond)
 	}
 
+	tokenString = "bearer" + tokenString
 	mw.LoginResponse(r, http.StatusOK, tokenString, expire)
 }
 
@@ -563,12 +565,8 @@ func (mw *GfJWTMiddleware) jwtFromHeader(r *ghttp.Request, key string) (string, 
 		return "", ErrEmptyAuthHeader
 	}
 
-	parts := strings.SplitN(authHeader, " ", 2)
-	if !(len(parts) == 2 && parts[0] == mw.TokenHeadName) {
-		return "", ErrInvalidAuthHeader
-	}
-
-	return parts[1], nil
+	subStr := "bearer"
+	return authHeader[len(subStr):], nil
 }
 
 func (mw *GfJWTMiddleware) jwtFromQuery(r *ghttp.Request, key string) (string, error) {
